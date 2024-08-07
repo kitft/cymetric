@@ -373,7 +373,7 @@ class FreeModel(FSModel):
             tf.print(self.model.trainable_variables)
             print(trainable_vars)
             print(self.model.trainable_variables)
-            tape.watch(trainable_vars)
+            #tape.watch(trainable_vars)
             # add other loss contributions.
             y_pred = self(x)
             if self.learn_kaehler:
