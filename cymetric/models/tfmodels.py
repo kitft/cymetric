@@ -102,9 +102,9 @@ class FreeModel(FSModel):
         self.NLOSS = 5
         # variable or constant or just tensor?
         if alpha is not None:
-            self.alpha = [tf.Variable(a, dtype=tf.float32) for a in alpha]
+            self.alpha = [a for a in alpha]
         else:
-            self.alpha = [tf.Variable(1., dtype=tf.float32) for _ in range(self.NLOSS)]
+            self.alpha = [1. for _ in range(self.NLOSS)]
         self.learn_kaehler = tf.cast(True, dtype=tf.bool)
         self.learn_transition = tf.cast(True, dtype=tf.bool)
         self.learn_ricci = tf.cast(False, dtype=tf.bool)
