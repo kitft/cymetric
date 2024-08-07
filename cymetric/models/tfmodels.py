@@ -138,25 +138,42 @@ class FreeModel(FSModel):
         # nn prediction
         return self.to_hermitian(self.model(input_tensor, training=training))
 
+    # def compile(self, custom_metrics=None, **kwargs):
+    #     r"""Compiles the model.
+
+    #     kwargs takes any argument of regular `tf.model.compile()`
+
+    #     Example:
+    #         >>> model = FreeModel(nn, BASIS)
+    #         >>> from cymetric.models.metrics import TotalLoss
+    #         >>> metrics = [TotalLoss()]
+    #         >>> opt = tfk.optimizers.Adam()
+    #         >>> model.compile(custom_metrics = metrics, optimizer = opt)        
+
+    #     Args:
+    #         custom_metrics (list, optional): List of custom metrics.
+    #             See also :py:mod:`cymetric.models.metrics`. If None, no metrics
+    #             are tracked during training. Defaults to None.
+    #     """
+    #     super(FreeModel, self).compile(**kwargs)
+    #     self.custom_metrics = custom_metrics
     def compile(self, custom_metrics=None, **kwargs):
         r"""Compiles the model.
-
         kwargs takes any argument of regular `tf.model.compile()`
-
         Example:
             >>> model = FreeModel(nn, BASIS)
             >>> from cymetric.models.metrics import TotalLoss
             >>> metrics = [TotalLoss()]
             >>> opt = tfk.optimizers.Adam()
-            >>> model.compile(custom_metrics = metrics, optimizer = opt)        
-
+            >>> model.compile(metrics=metrics, optimizer=opt)
         Args:
             custom_metrics (list, optional): List of custom metrics.
                 See also :py:mod:`cymetric.models.metrics`. If None, no metrics
                 are tracked during training. Defaults to None.
         """
+        if custom_metrics is not None:
+            kwargs['metrics'] = custom_metrics
         super(FreeModel, self).compile(**kwargs)
-        self.custom_metrics = custom_metrics
 
     @property
     def metrics(self):
@@ -178,32 +195,170 @@ class FreeModel(FSModel):
             metrics.extend(layer._metrics)
         return metrics
 
+    # def train_step(self, data):
+    #     r"""Train step of a single batch in model.fit().
+
+    #     NOTE:
+    #         1. The first epoch will take additional time, due to tracing.
+            
+    #         2. Warnings are plentiful. Disable on your own risk with 
+
+    #             >>> tf.get_logger().setLevel('ERROR')
+            
+    #         3. The conditionals need to be set before tracing. 
+            
+    #         4. We employ under the hood gradient clipping.
+
+    #     Args:
+    #         data (tuple): test_data (x,y, sample_weight)
+
+    #     Returns:
+    #         dict: metrics
+    #     """
+    #     if len(data) == 3:
+    #         x, y, sample_weight = data
+    #     else:
+    #         sample_weight = None
+    #         x, y = data
+
+    #     with tf.GradientTape(persistent=False) as tape:
+    #         trainable_vars = self.model.trainable_variables
+    #         tape.watch(trainable_vars)
+    #         # add other loss contributions.
+    #         y_pred = self(x)
+    #         if self.learn_kaehler:
+    #             cijk_loss = self.compute_kaehler_loss(x)
+    #         else:
+    #             cijk_loss = tf.zeros_like(x[:, 0])
+    #             # cijk_loss = tf.zeros(y.shape[-1], dtype=tf.float32)
+
+    #         if self.learn_transition:
+    #             t_loss = self.compute_transition_loss(x)
+    #         else:
+    #             t_loss = tf.zeros_like(cijk_loss)
+
+    #         if self.learn_ricci:
+    #             r_loss = self.compute_ricci_loss(x)
+    #         else:
+    #             r_loss = tf.zeros_like(cijk_loss)
+                
+    #         if self.learn_volk:
+    #             # is scalar and not batch vector
+    #             volk_loss = self.compute_volk_loss(x, y, y_pred)
+    #         else:
+    #             volk_loss = tf.zeros_like(cijk_loss)
+
+    #         omega = tf.expand_dims(y[:, -1], -1)
+    #         sigma_loss_cont = self.sigma_loss(omega, y_pred)**self.n[0]
+    #         total_loss = self.alpha[0]*sigma_loss_cont +\
+    #             self.alpha[1]*cijk_loss +\
+    #             self.alpha[2]*t_loss +\
+    #             self.alpha[3]*r_loss +\
+    #             self.alpha[4]*volk_loss
+    #         # weight the loss.
+    #         if sample_weight is not None:
+    #             total_loss *= sample_weight
+    #     # Compute gradients
+    #     gradients = tape.gradient(total_loss, trainable_vars)
+    #     # remove nans and gradient clipping from transition loss.
+    #     gradients = [tf.where(tf.math.is_nan(g), 1e-8, g) for g in gradients]
+    #     gradients, _ = tf.clip_by_global_norm(gradients, self.gclipping)
+    #     # Update weights
+    #     self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+    #     # Return metrics. NOTE: This interacts badly with any regular MSE
+    #     # compiled loss. Make it so that only custom metrics are updated?
+    #     self.compiled_metrics.update_state(y, y_pred, sample_weight)
+    #     if self.custom_metrics is not None:
+    #         loss_dict = {}
+    #         loss_dict['loss'] = total_loss
+    #         loss_dict['sigma_loss'] = sigma_loss_cont
+    #         loss_dict['kaehler_loss'] = cijk_loss
+    #         loss_dict['transition_loss'] = t_loss
+    #         loss_dict['ricci_loss'] = r_loss
+    #         loss_dict['volk_loss'] = volk_loss
+    #         # add other loss?
+    #         for m in self.custom_metrics:
+    #             m.update_state(loss_dict, sample_weight)
+    #     return {m.name: m.result() for m in self.metrics}
+
+    # def test_step(self, data):
+    #     r"""Same as train_step without the outer gradient tape.
+    #     Does *not* update the NN weights.
+
+    #     NOTE:
+    #         1. Computes the exaxt same losses as train_step
+            
+    #         2. Ricci loss val can be separately enabled with
+                
+    #             >>> model.learn_ricci_val = True
+            
+    #         3. Requires additional tracing.
+
+    #     Args:
+    #         data (tuple): test_data (x,y, sample_weight)
+
+    #     Returns:
+    #         dict: metrics
+    #     """
+    #     # unpack data
+    #     if len(data) == 3:
+    #         x, y, sample_weight = data
+    #     else:
+    #         sample_weight = None
+    #         x, y = data
+    #     y_pred = self(x)
+    #     # add loss contributions
+    #     if self.learn_kaehler:
+    #         cijk_loss = self.compute_kaehler_loss(x)
+    #     else:
+    #         cijk_loss = tf.zeros_like(x[:, 0])
+    #         # cijk_loss = tf.zeros(y.shape[-1], dtype=tf.float32)
+    #     if self.learn_transition:
+    #         t_loss = self.compute_transition_loss(x)
+    #     else:
+    #         t_loss = tf.zeros_like(cijk_loss)
+    #     if self.learn_ricci_val or self.learn_ricci:
+    #         r_loss = self.compute_ricci_loss(x)
+    #     else:
+    #         r_loss = tf.zeros_like(cijk_loss)
+    #     if self.learn_volk:
+    #         volk_loss = self.compute_volk_loss(x, y, y_pred)
+    #     else:
+    #         volk_loss = tf.zeros_like(cijk_loss)
+        
+    #     omega = tf.expand_dims(y[:, -1], -1)
+    #     sigma_loss_cont = self.sigma_loss(omega, y_pred)**self.n[0]
+    #     total_loss = self.alpha[0]*sigma_loss_cont +\
+    #         self.alpha[1]*cijk_loss +\
+    #         self.alpha[2]*t_loss +\
+    #         self.alpha[3]*r_loss +\
+    #         self.alpha[4]*volk_loss
+    #     # weight the loss.
+    #     if sample_weight is not None:
+    #         total_loss *= sample_weight
+    #     # Return metrics.
+    #     self.compiled_metrics.update_state(y, y_pred, sample_weight)
+    #     if self.custom_metrics is not None:
+    #         loss_dict = {}
+    #         loss_dict['loss'] = total_loss
+    #         loss_dict['sigma_loss'] = sigma_loss_cont
+    #         loss_dict['kaehler_loss'] = cijk_loss
+    #         loss_dict['transition_loss'] = t_loss
+    #         loss_dict['ricci_loss'] = r_loss
+    #         loss_dict['volk_loss'] = volk_loss
+    #         # add other loss?
+    #         for m in self.custom_metrics:
+    #             m.update_state(loss_dict, sample_weight)
+    #     return {m.name: m.result() for m in self.metrics}
     def train_step(self, data):
         r"""Train step of a single batch in model.fit().
-
-        NOTE:
-            1. The first epoch will take additional time, due to tracing.
-            
-            2. Warnings are plentiful. Disable on your own risk with 
-
-                >>> tf.get_logger().setLevel('ERROR')
-            
-            3. The conditionals need to be set before tracing. 
-            
-            4. We employ under the hood gradient clipping.
-
-        Args:
-            data (tuple): test_data (x,y, sample_weight)
-
-        Returns:
-            dict: metrics
+        # ...
         """
         if len(data) == 3:
             x, y, sample_weight = data
         else:
             sample_weight = None
             x, y = data
-
         with tf.GradientTape(persistent=False) as tape:
             trainable_vars = self.model.trainable_variables
             tape.watch(trainable_vars)
@@ -214,23 +369,20 @@ class FreeModel(FSModel):
             else:
                 cijk_loss = tf.zeros_like(x[:, 0])
                 # cijk_loss = tf.zeros(y.shape[-1], dtype=tf.float32)
-
             if self.learn_transition:
                 t_loss = self.compute_transition_loss(x)
             else:
                 t_loss = tf.zeros_like(cijk_loss)
-
             if self.learn_ricci:
                 r_loss = self.compute_ricci_loss(x)
             else:
                 r_loss = tf.zeros_like(cijk_loss)
-                
+
             if self.learn_volk:
                 # is scalar and not batch vector
                 volk_loss = self.compute_volk_loss(x, y, y_pred)
             else:
                 volk_loss = tf.zeros_like(cijk_loss)
-
             omega = tf.expand_dims(y[:, -1], -1)
             sigma_loss_cont = self.sigma_loss(omega, y_pred)**self.n[0]
             total_loss = self.alpha[0]*sigma_loss_cont +\
@@ -248,40 +400,21 @@ class FreeModel(FSModel):
         gradients, _ = tf.clip_by_global_norm(gradients, self.gclipping)
         # Update weights
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-        # Return metrics. NOTE: This interacts badly with any regular MSE
-        # compiled loss. Make it so that only custom metrics are updated?
+        # Return metrics.
         self.compiled_metrics.update_state(y, y_pred, sample_weight)
-        if self.custom_metrics is not None:
-            loss_dict = {}
-            loss_dict['loss'] = total_loss
-            loss_dict['sigma_loss'] = sigma_loss_cont
-            loss_dict['kaehler_loss'] = cijk_loss
-            loss_dict['transition_loss'] = t_loss
-            loss_dict['ricci_loss'] = r_loss
-            loss_dict['volk_loss'] = volk_loss
-            # add other loss?
-            for m in self.custom_metrics:
-                m.update_state(loss_dict, sample_weight)
-        return {m.name: m.result() for m in self.metrics}
+        loss_dict = {m.name: m.result() for m in self.metrics}
+        loss_dict['loss'] = total_loss
+        loss_dict['sigma_loss'] = sigma_loss_cont
+        loss_dict['kaehler_loss'] = cijk_loss
+        loss_dict['transition_loss'] = t_loss
+        loss_dict['ricci_loss'] = r_loss
+        loss_dict['volk_loss'] = volk_loss
+        return loss_dict
 
     def test_step(self, data):
         r"""Same as train_step without the outer gradient tape.
         Does *not* update the NN weights.
-
-        NOTE:
-            1. Computes the exaxt same losses as train_step
-            
-            2. Ricci loss val can be separately enabled with
-                
-                >>> model.learn_ricci_val = True
-            
-            3. Requires additional tracing.
-
-        Args:
-            data (tuple): test_data (x,y, sample_weight)
-
-        Returns:
-            dict: metrics
+        # ...
         """
         # unpack data
         if len(data) == 3:
@@ -308,7 +441,7 @@ class FreeModel(FSModel):
             volk_loss = self.compute_volk_loss(x, y, y_pred)
         else:
             volk_loss = tf.zeros_like(cijk_loss)
-        
+
         omega = tf.expand_dims(y[:, -1], -1)
         sigma_loss_cont = self.sigma_loss(omega, y_pred)**self.n[0]
         total_loss = self.alpha[0]*sigma_loss_cont +\
@@ -321,18 +454,14 @@ class FreeModel(FSModel):
             total_loss *= sample_weight
         # Return metrics.
         self.compiled_metrics.update_state(y, y_pred, sample_weight)
-        if self.custom_metrics is not None:
-            loss_dict = {}
-            loss_dict['loss'] = total_loss
-            loss_dict['sigma_loss'] = sigma_loss_cont
-            loss_dict['kaehler_loss'] = cijk_loss
-            loss_dict['transition_loss'] = t_loss
-            loss_dict['ricci_loss'] = r_loss
-            loss_dict['volk_loss'] = volk_loss
-            # add other loss?
-            for m in self.custom_metrics:
-                m.update_state(loss_dict, sample_weight)
-        return {m.name: m.result() for m in self.metrics}
+        loss_dict = {m.name: m.result() for m in self.metrics}
+        loss_dict['loss'] = total_loss
+        loss_dict['sigma_loss'] = sigma_loss_cont
+        loss_dict['kaehler_loss'] = cijk_loss
+        loss_dict['transition_loss'] = t_loss
+        loss_dict['ricci_loss'] = r_loss
+        loss_dict['volk_loss'] = volk_loss
+        return loss_dict
 
     @tf.function
     def to_hermitian(self, x):
