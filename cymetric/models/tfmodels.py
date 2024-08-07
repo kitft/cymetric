@@ -175,24 +175,36 @@ class FreeModel(FSModel):
             kwargs['metrics'] = custom_metrics
         super(FreeModel, self).compile(**kwargs)
 
+    # @property
+    # def metrics(self):
+    #     r"""Returns the models metrics including custom metrics.
+
+    #     Returns:
+    #         list: metrics
+    #     """
+    #     metrics = []
+    #     if self._is_compiled:
+    #         if self.compiled_loss is not None:
+    #             metrics += self.compiled_loss.metrics
+    #         if self.compiled_metrics is not None:
+    #             metrics += self.compiled_metrics.metrics
+    #         if self.custom_metrics is not None:
+    #             metrics += self.custom_metrics
+
+    #     for layer in self._flatten_layers():
+    #         metrics.extend(layer._metrics)
+    #     return metrics
     @property
     def metrics(self):
-        r"""Returns the models metrics including custom metrics.
-
+        r"""Returns the model's metrics, including custom metrics.
         Returns:
             list: metrics
         """
         metrics = []
-        if self._is_compiled:
-            if self.compiled_loss is not None:
-                metrics += self.compiled_loss.metrics
-            if self.compiled_metrics is not None:
-                metrics += self.compiled_metrics.metrics
-            if self.custom_metrics is not None:
-                metrics += self.custom_metrics
-
-        for layer in self._flatten_layers():
-            metrics.extend(layer._metrics)
+        if self.compiled_loss is not None:
+            metrics += self.compiled_loss.metrics
+        if self.compiled_metrics is not None:
+            metrics += self.compiled_metrics.metrics
         return metrics
 
     # def train_step(self, data):
@@ -447,7 +459,7 @@ class FreeModel(FSModel):
         total_loss = self.alpha[0]*sigma_loss_cont +\
             self.alpha[1]*cijk_loss +\
             self.alpha[2]*t_loss +\
-            self.alpha[3]*r_loss +\
+            self.alpha[3]*r_loss +\ 
             self.alpha[4]*volk_loss
         # weight the loss.
         if sample_weight is not None:
