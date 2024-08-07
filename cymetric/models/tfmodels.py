@@ -200,12 +200,7 @@ class FreeModel(FSModel):
         Returns:
             list: metrics
         """
-        metrics = []
-        if self.compiled_loss is not None:
-            metrics += self.compiled_loss.metrics
-        if self.compiled_metrics is not None:
-            metrics += self.compiled_metrics.metrics
-        return metrics
+        return self._metrics
 
     # def train_step(self, data):
     #     r"""Train step of a single batch in model.fit().
