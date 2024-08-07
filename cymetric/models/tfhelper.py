@@ -95,6 +95,8 @@ def train_model(fsmodel, data, optimizer=None, epochs=50, batch_sizes=[64, 10000
         fsmodel.learn_volk = tf.cast(True, dtype=tf.bool)
         dataset = tf.data.Dataset.from_tensor_slices((tf.cast(data['X_train'],tf.float32), tf.cast(data['y_train'],tf.float32)))
         dataset = dataset.batch(batch_size).repeat()
+        steps_per_epoch = len(data['X_train']) // batch_size
+
         history = fsmodel.fit(
             #data['X_train'], data['y_train'],
             dataset,
@@ -103,7 +105,7 @@ def train_model(fsmodel, data, optimizer=None, epochs=50, batch_sizes=[64, 10000
             steps_per_epoch=steps_per_epoch
         )
         for k in history.history.keys():
-            if k not in hist2.keys():
+            if k not in hist2.keys()
                 hist2[k] = history.history[k]
             else:
                 hist2[k] += history.history[k]
