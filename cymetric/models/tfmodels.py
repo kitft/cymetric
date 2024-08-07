@@ -460,7 +460,7 @@ class FreeModel(FSModel):
         if sample_weight is not None:
             total_loss *= sample_weight
         # Return metrics.
-        self.compiled_metrics.update_state(y, y_pred, sample_weight)
+        #self.compiled_metrics.update_state(y, y_pred, sample_weight)
         loss_dict = {m.name: m.result() for m in self.metrics}
         loss_dict['loss'] = total_loss
         loss_dict['sigma_loss'] = sigma_loss_cont
