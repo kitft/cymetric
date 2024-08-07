@@ -93,8 +93,11 @@ def train_model(fsmodel, data, optimizer=None, epochs=50, batch_sizes=[64, 10000
         fsmodel.learn_ricci = tf.cast(False, dtype=tf.bool)
         fsmodel.learn_ricci_val = tf.cast(False, dtype=tf.bool)
         fsmodel.learn_volk = tf.cast(True, dtype=tf.bool)
+        dataset = tf.data.Dataset.from_tensor_slices((tf.cast(data['X_train'],tf.float32), tf.cast(data['y_train'],tf.float32)))
+        dataset = dataset.batch(batch_size, drop_remainder=True)
         history = fsmodel.fit(
-            data['X_train'], data['y_train'],
+            #data['X_train'], data['y_train'],
+            dataset,
             epochs=1, batch_size=batch_size, verbose=verbose,
             callbacks=callbacks, sample_weight=sample_weights,
             steps_per_epoch=steps_per_epoch
@@ -108,10 +111,10 @@ def train_model(fsmodel, data, optimizer=None, epochs=50, batch_sizes=[64, 10000
     # for k in hist1.keys():
     #     training_history[k] = hist1[k] + hist2[k]
     print("keys")
-    print(set(list(hist1.keys()) + list(hist2.keys())))
-    tf.print(set(list(hist1.keys()) + list(hist2.keys())))
-    print((list(hist1.values()) + list(hist2.values())))
-    tf.print((list(hist1.values()) + list(hist2.values())))
+    print(list(hist1.keys()) + ["hi"]  + list(hist2.keys()))
+    tf.print(list(hist1.keys()) + ["hi"] + list(hist2.keys()))
+    print((list(hist1.values()) + ["hi"] +  list(hist2.values())))
+    tf.print((list(hist1.values()) + ["hi"] +  list(hist2.values())))
     for k in set(list(hist1.keys()) + list(hist2.keys())):
         training_history[k] = hist2[k] if (k not in hist1 or (k in hist2 and max(hist2[k]) != 0)) else hist1[k]
     training_history['epochs'] = list(range(epochs))
