@@ -366,8 +366,8 @@ class FreeModel(FSModel):
         else:
             sample_weight = None
             x, y = data
-        print("lens of x,y, sample_weights are " + str(len(x)) + " " + str(len(y)) + " " + str(len(sample_weight)))
-        tf.print("lens of x,y, sample_weights are " + str(len(x)) + " " + str(len(y)) + " " + str(len(sample_weight)))
+        print("shapes of x,y, sample_weights are " + str(x.shape) + " " + str(y.shape) + " " + str(sample_weight.shape))
+        tf.print("shapes of x,y, sample_weights are " + str(x.shape) + " " + str(y.shape) + " " + str(sample_weight.shape))
         with tf.GradientTape(persistent=False) as tape:
             trainable_vars = self.model.trainable_weights
             #print("999999999999999")
