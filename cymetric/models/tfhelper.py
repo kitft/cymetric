@@ -93,7 +93,8 @@ def train_model(fsmodel, data, optimizer=None, epochs=50, batch_sizes=[64, 10000
         history = fsmodel.fit(
             data['X_train'], data['y_train'],
             epochs=1, batch_size=batch_size, verbose=verbose,
-            callbacks=callbacks, sample_weight=sample_weights
+            callbacks=callbacks, sample_weight=sample_weights,
+            steps_per_epoch=steps_per_epoch
         )
         for k in history.history.keys():
             if k not in hist2.keys():
@@ -103,6 +104,11 @@ def train_model(fsmodel, data, optimizer=None, epochs=50, batch_sizes=[64, 10000
     # training_history['epochs'] = list(range(epochs)) + list(range(epochs))
     # for k in hist1.keys():
     #     training_history[k] = hist1[k] + hist2[k]
+    print("keys")
+    print(set(list(hist1.keys()) + list(hist2.keys())))
+    tf.print(set(list(hist1.keys()) + list(hist2.keys())))
+    print(set(list(hist1.values()) + list(hist2.values())))
+    tf.print(set(list(hist1.values()) + list(hist2.values())))
     for k in set(list(hist1.keys()) + list(hist2.keys())):
         training_history[k] = hist2[k] if (k not in hist1 or (k in hist2 and max(hist2[k]) != 0)) else hist1[k]
     training_history['epochs'] = list(range(epochs))
