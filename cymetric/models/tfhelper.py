@@ -72,10 +72,12 @@ def train_model(fsmodel, data, optimizer=None, epochs=50, batch_sizes=[64, 10000
         fsmodel.learn_volk = tf.cast(False, dtype=tf.bool)
         if verbose > 0:
             print("\nEpoch {:2d}/{:d}".format(epoch + 1, epochs))
+        steps_per_epoch = len(data['X_train']) // batch_size
         history = fsmodel.fit(
             data['X_train'], data['y_train'],
             epochs=1, batch_size=batch_size, verbose=verbose,
-            callbacks=None, sample_weight=sample_weights
+            callbacks=None, sample_weight=sample_weights,
+            steps_per_epoch=steps_per_epoch
         )
         for k in history.history.keys():
             if k not in hist1.keys():
