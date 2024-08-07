@@ -368,11 +368,12 @@ class FreeModel(FSModel):
             x, y = data
         with tf.GradientTape(persistent=False) as tape:
             trainable_vars = self.model.trainable_weights
-            print("999999999999999")
-            tf.print(trainable_vars)
-            tf.print(self.model.trainable_variables)
-            print(trainable_vars)
-            print(self.model.trainable_variables)
+            #print("999999999999999")
+            #tf.print(trainable_vars)
+            #tf.print(self.model.trainable_variables)
+            #print(trainable_vars)
+            #print(self.model.trainable_variables)
+            
             #tape.watch(trainable_vars)
             # add other loss contributions.
             y_pred = self(x)
