@@ -105,7 +105,7 @@ def train_model(fsmodel, data, optimizer=None, epochs=50, batch_sizes=[64, 10000
             steps_per_epoch=steps_per_epoch
         )
         for k in history.history.keys():
-            if k not in hist2.keys()
+            if k not in hist2.keys():
                 hist2[k] = history.history[k]
             else:
                 hist2[k] += history.history[k]
