@@ -73,8 +73,11 @@ def train_model(fsmodel, data, optimizer=None, epochs=50, batch_sizes=[64, 10000
         if verbose > 0:
             print("\nEpoch {:2d}/{:d}".format(epoch + 1, epochs))
         steps_per_epoch = len(data['X_train']) // batch_size
+        dataset = tf.data.Dataset.from_tensor_slices((data['X_train'], data['y_train']))
+        dataset = dataset.batch(batch_size).repeat()
+        #repeat to ensure we don't run out of data 
         history = fsmodel.fit(
-            data['X_train'], data['y_train'],
+            dataset,
             epochs=1, batch_size=batch_size, verbose=verbose,
             callbacks=None, sample_weight=sample_weights,
             steps_per_epoch=steps_per_epoch
@@ -107,8 +110,8 @@ def train_model(fsmodel, data, optimizer=None, epochs=50, batch_sizes=[64, 10000
     print("keys")
     print(set(list(hist1.keys()) + list(hist2.keys())))
     tf.print(set(list(hist1.keys()) + list(hist2.keys())))
-    print(set(list(hist1.values()) + list(hist2.values())))
-    tf.print(set(list(hist1.values()) + list(hist2.values())))
+    print((list(hist1.values()) + list(hist2.values())))
+    tf.print((list(hist1.values()) + list(hist2.values())))
     for k in set(list(hist1.keys()) + list(hist2.keys())):
         training_history[k] = hist2[k] if (k not in hist1 or (k in hist2 and max(hist2[k]) != 0)) else hist1[k]
     training_history['epochs'] = list(range(epochs))
