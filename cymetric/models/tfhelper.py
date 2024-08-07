@@ -74,7 +74,7 @@ def train_model(fsmodel, data, optimizer=None, epochs=50, batch_sizes=[64, 10000
             print("\nEpoch {:2d}/{:d}".format(epoch + 1, epochs))
         steps_per_epoch = len(data['X_train']) // batch_size
         dataset = tf.data.Dataset.from_tensor_slices((tf.cast(data['X_train'],tf.float32), tf.cast(data['y_train'],tf.float32)))
-        dataset = dataset.batch(batch_size).repeat()
+        dataset = dataset#.batch(batch_size).repeat()
         #repeat to ensure we don't run out of data 
         history = fsmodel.fit(
             dataset,
