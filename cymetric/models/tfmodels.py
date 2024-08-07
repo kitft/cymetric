@@ -457,9 +457,9 @@ class FreeModel(FSModel):
         omega = tf.expand_dims(y[:, -1], -1)
         sigma_loss_cont = self.sigma_loss(omega, y_pred)**self.n[0]
         total_loss = self.alpha[0]*sigma_loss_cont +\
-            self.alpha[1]*cijk_loss +\
-            self.alpha[2]*t_loss +\
-            self.alpha[3]*r_loss +\ 
+            self.alpha[1]*cijk_loss + \
+            self.alpha[2]*t_loss + \
+            self.alpha[3]*r_loss + \
             self.alpha[4]*volk_loss
         # weight the loss.
         if sample_weight is not None:
