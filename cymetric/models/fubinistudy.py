@@ -375,9 +375,7 @@ class FSModel(tfk.Model):
         good_identity = tf.boolean_mask(identities, full_mask, axis=0)
         good_identity=tf.reshape(good_identity,(n_p,self.nfold,self.ncoords))
 
-
         # Add ones to the diagonal for non-eliminated coordinates
-        #pullbacks += tf.repeat(good_identity[tf.newaxis, tf.newaxis, :, :], [n_p, self.nfold, 1, 1])
         pullbacks=good_identity
 
         # Add computed values for eliminated coordinates
@@ -385,9 +383,6 @@ class FSModel(tfk.Model):
             update_mask = tf.one_hot(dQdz_indices[:, i], self.ncoords, dtype=tf.complex64)
             update_mask = tf.repeat(update_mask[:, tf.newaxis, :], self.nfold, axis=1)
             pullbacks += update_mask * all_dzdz[:, :, i:i+1]
-
-        # Remove rows corresponding to eliminated coordinates
-        #pullbacks = tf.boolean_mask(pullbacks, full_mask, axis=2)
 
         return pullbacks
 
